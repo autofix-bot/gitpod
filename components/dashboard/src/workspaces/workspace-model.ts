@@ -7,6 +7,7 @@
 import { Disposable, DisposableCollection, GitpodClient, WorkspaceInfo, WorkspaceInstance } from "@gitpod/gitpod-protocol";
 import { getGitpodService } from "../service/service";
 
+
 export class WorkspaceModel implements Disposable, Partial<GitpodClient> {
     
     protected workspaces = new Map<string,WorkspaceInfo>();

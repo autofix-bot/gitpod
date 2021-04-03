@@ -14,6 +14,8 @@ import { UserContext } from './user-context';
 import { getGitpodService } from './service/service';
 import { shouldSeeWhatsNew, WhatsNew } from './WhatsNew';
 import settingsMenu from './settings/settings-menu';
+import { User } from '@gitpod/gitpod-protocol';
+import { adminMenu } from './admin/admin-menu';
 
 const Workspaces = React.lazy(() => import(/* webpackPrefetch: true */ './workspaces/Workspaces'));
 const Account = React.lazy(() => import(/* webpackPrefetch: true */ './settings/Account'));
@@ -26,6 +28,8 @@ const Preferences = React.lazy(() => import(/* webpackPrefetch: true */ './setti
 const StartWorkspace = React.lazy(() => import(/* webpackPrefetch: true */ './start/StartWorkspace'));
 const CreateWorkspace = React.lazy(() => import(/* webpackPrefetch: true */ './start/CreateWorkspace'));
 const InstallGitHubApp = React.lazy(() => import(/* webpackPrefetch: true */ './prebuilds/InstallGitHubApp'));
+const UserSearch = React.lazy(() => import(/* webpackPrefetch: true */ './admin/UserSearch'));
+const WorkspacesSearch = React.lazy(() => import(/* webpackPrefetch: true */ './admin/WorkspacesSearch'));
 
 function Loading() {
     return <>
@@ -49,7 +53,7 @@ function App() {
             setLoading(false);
         })();
     }, []);
-    
+
     if (loading) {
         return <Loading />
     }
@@ -70,7 +74,7 @@ function App() {
 
     let toRender: React.ReactElement = <Route>
         <div className="container">
-            {renderMenu()}
+            {renderMenu(user)}
             <Switch>
                 <Route path="/workspaces" exact component={Workspaces} />
                 <Route path="/account" exact component={Account} />
@@ -82,6 +86,9 @@ function App() {
                 <Route path="/preferences" exact component={Preferences} />
                 <Route path="/install-github-app" exact component={InstallGitHubApp} />
                 
+                <Route path="/admin/users" component={UserSearch} />
+                <Route path="/admin/workspaces" component={WorkspacesSearch} />
+
                 <Route path={["/", "/login"]} exact>
                     <Redirect to="/workspaces"/>
                 </Route>
@@ -93,6 +100,9 @@ function App() {
                 </Route>
                 <Route path={["/subscription", "/usage"]} exact>
                     <Redirect to="/plans"/>
+                </Route>
+                <Route path={["/admin"]} exact>
+                    <Redirect to="/admin/users"/>
                 </Route>
             </Switch>
         </div>
@@ -122,8 +132,8 @@ function getURLHash() {
     return window.location.hash.replace(/^[#/]+/, '');
 }
 
-const renderMenu = () => (
-    <Menu left={[
+const renderMenu = (user?: User) => {
+        const left = [
         {
             title: 'Workspaces',
             link: '/workspaces',
@@ -133,8 +143,19 @@ const renderMenu = () => (
             title: 'Settings',
             link: '/settings',
             alternatives: settingsMenu.flatMap(e => e.link)
-        },
-    ]}
+        }
+    ];
+
+    if (user && user?.rolesOrPermissions?.includes('admin')) {
+        left.push({
+            title: 'Admin',
+            link: '/admin',
+            alternatives: adminMenu.flatMap(e => e.link)
+        });
+    }
+
+    return <Menu 
+        left={left}
         right={[
             {
                 title: 'Docs',
@@ -145,6 +166,7 @@ const renderMenu = () => (
                 link: 'https://community.gitpod.io/',
             }
         ]}
-    />)
+    />;
+}
 
 export default App;
